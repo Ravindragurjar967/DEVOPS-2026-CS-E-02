@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const QRCode = require('qrcode');
+const mongoose = require('mongoose');
 const Prescription = require('../models/Prescription');
 const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
@@ -37,7 +38,7 @@ router.post('/', protect, authorize('doctor', 'admin'), async (req, res) => {
           targetPatientId = p._id;
           targetPatientName = p.name;
         }
-      } else if (targetPatientId) {
+      } else if (targetPatientId && mongoose.Types.ObjectId.isValid(targetPatientId)) {
         const p = await User.findById(targetPatientId);
         if (p) {
           targetHealthId = p.patientInfo ? p.patientInfo.healthId : 'N/A';
@@ -109,7 +110,12 @@ router.get('/my', protect, async (req, res) => {
       if (req.user.role === 'doctor') {
         prescriptions = await Prescription.find({ doctor: req.user._id }).sort({ createdAt: -1 });
       } else if (req.user.role === 'patient') {
-        prescriptions = await Prescription.find({ patient: req.user._id }).sort({ createdAt: -1 });
+        prescriptions = await Prescription.find({ 
+          $or: [
+            { patient: req.user._id },
+            { patientHealthId: req.user.healthId }
+          ]
+        }).sort({ createdAt: -1 });
       } else {
         prescriptions = await Prescription.find().sort({ createdAt: -1 }).limit(50);
       }
@@ -147,10 +153,7 @@ router.get('/patient/:healthId', protect, async (req, res) => {
 router.get('/verify/:prescriptionId', protect, async (req, res) => {
   try {
     if (isDbConnected()) {
-      const prescription = await Prescription.findOne({ prescriptionId: req.params.prescriptionId })
-        .populate('doctor', 'name doctorInfo phone email')
-        .populate('patient', 'name phone patientInfo');
-
+      const prescription = await Prescription.findOne({ prescriptionId: req.params.prescriptionId });
       if (!prescription) {
         return res.status(404).json({ message: 'Prescription not found or invalid QR code' });
       }

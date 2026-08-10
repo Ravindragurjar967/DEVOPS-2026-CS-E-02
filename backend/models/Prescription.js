@@ -10,8 +10,8 @@ const medicineSchema = new mongoose.Schema({
 
 const prescriptionSchema = new mongoose.Schema({
   prescriptionId: { type: String, required: true, unique: true },
-  doctor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  patient: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  doctor: { type: mongoose.Schema.Types.Mixed, ref: 'User', required: true }, // Mixed to accept both ObjectId & Custom String IDs
+  patient: { type: mongoose.Schema.Types.Mixed, ref: 'User', required: true }, // Mixed to accept both ObjectId & Custom String IDs
   patientHealthId: { type: String, required: true },
   patientName: { type: String, required: true },
   doctorName: { type: String, required: true },
@@ -32,7 +32,7 @@ const prescriptionSchema = new mongoose.Schema({
     enum: ['active', 'dispensed', 'cancelled'], 
     default: 'active' 
   },
-  dispensedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  dispensedBy: { type: mongoose.Schema.Types.Mixed, ref: 'User' },
   dispensedAt: { type: Date }
 }, { timestamps: true });
 
