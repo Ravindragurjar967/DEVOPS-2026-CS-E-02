@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import { User, FileText, Activity, ShieldCheck, Calendar, ArrowLeft, Pill, AlertTriangle } from 'lucide-react';
+import { User, FileText, Activity, ShieldCheck, Calendar, ArrowLeft, Pill, AlertTriangle, Lock } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
 const UniversalPatientRecord = () => {
@@ -38,7 +38,7 @@ const UniversalPatientRecord = () => {
     );
   }
 
-  const { patient, prescriptions, reports } = record;
+  const { patient, prescriptions, reports, consentRestricted, message } = record;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -63,15 +63,7 @@ const UniversalPatientRecord = () => {
               <span>Health ID: <strong style={{ color: '#38bdf8' }}>{patient.patientInfo?.healthId}</strong></span>
               <span>Blood Group: <strong style={{ color: '#f43f5e' }}>{patient.patientInfo?.bloodGroup || 'O+'}</strong></span>
               <span>Age: {patient.patientInfo?.age || 'N/A'} yrs</span>
-              <span>Phone: {patient.phone}</span>
-              <span>Email: {patient.email}</span>
             </div>
-
-            {patient.patientInfo?.allergies && patient.patientInfo.allergies.length > 0 && (
-              <div style={{ marginTop: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#fbbf24', fontSize: '0.85rem' }}>
-                <AlertTriangle size={15} /> Known Allergies: <strong>{patient.patientInfo.allergies.join(', ')}</strong>
-              </div>
-            )}
           </div>
 
           <div style={{ background: '#ffffff', padding: '0.75rem', borderRadius: '10px' }}>
@@ -80,70 +72,73 @@ const UniversalPatientRecord = () => {
         </div>
       </div>
 
-      {/* Medical History Timeline */}
-      <div className="grid-2">
-        {/* Prescriptions Column */}
-        <div className="glass-card">
-          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#38bdf8' }}>
-            <FileText size={20} /> Prescriptions History ({prescriptions.length})
-          </h3>
-          {prescriptions.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)' }}>No prescription history recorded.</p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {prescriptions.map((rx) => (
-                <div key={rx._id} style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '1rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                      <strong style={{ color: '#38bdf8' }}>{rx.prescriptionId}</strong>
-                      <div style={{ fontSize: '0.9rem', fontWeight: 600, marginTop: '0.2rem' }}>Dr. {rx.doctorName}</div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{rx.diagnosis}</div>
-                    </div>
-                    <span className={`badge ${rx.status === 'active' ? 'badge-active' : 'badge-dispensed'}`}>
-                      {rx.status}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                    Issued: {new Date(rx.createdAt).toLocaleDateString()} • {rx.medicines?.length || 0} medicines
-                  </div>
-                  <Link to={`/prescription/${rx._id}`} style={{ fontSize: '0.8rem', color: '#38bdf8', marginTop: '0.5rem', display: 'inline-block' }}>
-                    View Full Digital Prescription →
-                  </Link>
-                </div>
-              ))}
-            </div>
-          )}
+      {/* Consent Restriction Warning Banner */}
+      {consentRestricted ? (
+        <div className="glass-card" style={{ background: 'rgba(244, 63, 94, 0.12)', border: '1px solid rgba(244, 63, 94, 0.4)', textAlign: 'center', padding: '2.5rem' }}>
+          <Lock size={48} style={{ color: '#f43f5e', marginBottom: '0.75rem' }} />
+          <h3 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#f43f5e' }}>Medical History Access Restricted</h3>
+          <p style={{ color: '#cbd5e1', fontSize: '0.95rem', marginTop: '0.4rem', maxWidth: '600px', margin: '0.4rem auto 0' }}>
+            {message || 'The patient has disabled doctor permission to view their full past medical prescriptions & lab reports. Please ask the patient to enable doctor access from their patient portal.'}
+          </p>
         </div>
+      ) : (
+        /* Medical History Timeline */
+        <div className="grid-2">
+          {/* Prescriptions Column */}
+          <div className="glass-card">
+            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#38bdf8' }}>
+              <FileText size={20} /> Prescriptions History ({prescriptions.length})
+            </h3>
+            {prescriptions.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)' }}>No prescription history recorded.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {prescriptions.map((rx) => (
+                  <div key={rx._id} style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <strong style={{ color: '#38bdf8' }}>{rx.prescriptionId}</strong>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 600, marginTop: '0.2rem' }}>Dr. {rx.doctorName}</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{rx.diagnosis}</div>
+                      </div>
+                      <span className={`badge ${rx.status === 'active' ? 'badge-active' : 'badge-dispensed'}`}>
+                        {rx.status}
+                      </span>
+                    </div>
+                    <Link to={`/prescription/${rx._id}`} style={{ fontSize: '0.8rem', color: '#38bdf8', marginTop: '0.5rem', display: 'inline-block' }}>
+                      View Full Digital Prescription →
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
-        {/* Lab Reports Column */}
-        <div className="glass-card">
-          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#10b981' }}>
-            <Activity size={20} /> Diagnostic Lab Reports ({reports.length})
-          </h3>
-          {reports.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)' }}>No diagnostic reports uploaded yet.</p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {reports.map((rep) => (
-                <div key={rep._id} style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '1rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <strong style={{ color: '#ffffff' }}>{rep.title}</strong>
-                    <span className="badge badge-patient">{rep.category}</span>
-                  </div>
-                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
-                    Lab: {rep.labName} • Date: {new Date(rep.reportDate).toLocaleDateString()}
-                  </div>
-                  {rep.summary && (
-                    <div style={{ fontSize: '0.85rem', marginTop: '0.4rem', color: '#cbd5e1' }}>
-                      Summary: {rep.summary}
+          {/* Lab Reports Column */}
+          <div className="glass-card">
+            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#10b981' }}>
+              <Activity size={20} /> Diagnostic Lab Reports ({reports.length})
+            </h3>
+            {reports.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)' }}>No diagnostic reports uploaded yet.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {reports.map((rep) => (
+                  <div key={rep._id} style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <strong style={{ color: '#ffffff' }}>{rep.title}</strong>
+                      <span className="badge badge-patient">{rep.category}</span>
                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+                      Lab: {rep.labName} • Date: {new Date(rep.reportDate).toLocaleDateString()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

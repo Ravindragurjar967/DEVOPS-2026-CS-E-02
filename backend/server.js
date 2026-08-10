@@ -1,6 +1,3 @@
-const mongoose = require('mongoose');
-
-
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -10,22 +7,8 @@ dotenv.config();
 
 const app = express();
 
-// Connect to MongoDB (with automatic fast fallback)
+// Connect to MongoDB (with automatic fast fallback & DNS fix)
 connectDB();
-
-
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-
-
-
-
-
-
-
-
 
 // Middleware
 app.use(cors());
@@ -37,6 +20,8 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/prescriptions', require('./routes/prescriptions'));
 app.use('/api/patients', require('./routes/patients'));
 app.use('/api/reports', require('./routes/reports'));
+app.use('/api/appointments', require('./routes/appointments'));
+app.use('/api/ai-chatbot', require('./routes/aiChatbot'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

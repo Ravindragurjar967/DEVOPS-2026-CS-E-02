@@ -11,7 +11,6 @@ const userSchema = new mongoose.Schema({
     default: 'patient' 
   },
   phone: { type: String, default: '' },
-  // Role specific extra metadata
   doctorInfo: {
     licenseNumber: { type: String, default: '' },
     specialty: { type: String, default: '' },
@@ -23,7 +22,8 @@ const userSchema = new mongoose.Schema({
     gender: { type: String, enum: ['Male', 'Female', 'Other', ''] },
     bloodGroup: { type: String, default: '' },
     allergies: [{ type: String }],
-    medicalHistory: [{ type: String }]
+    medicalHistory: [{ type: String }],
+    doctorConsentGranted: { type: Boolean, default: true } // Patient permission toggle for doctors
   },
   pharmacyInfo: {
     pharmacyName: { type: String, default: '' },
@@ -32,31 +32,10 @@ const userSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-
 userSchema.pre('save', async function() {
   if (!this.isModified('password')) return;
   this.password = await bcrypt.hash(this.password, 10);
 });
-
-
-
-
-
-
-
-// userSchema.pre('save', async function (next) {
-//   if (!this.isModified('password')) return next();
-//   const salt = await bcrypt.genSalt(10);
-//   this.password = await bcrypt.hash(this.password, salt);
-//   next();
-// });
-
-
-
-
-
-
-
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);

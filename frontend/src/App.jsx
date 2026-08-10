@@ -13,6 +13,7 @@ import WritePrescription from './pages/WritePrescription';
 import PrescriptionView from './pages/PrescriptionView';
 import UniversalPatientRecord from './pages/UniversalPatientRecord';
 import MyReports from './pages/MyReports';
+import BookAppointment from './pages/BookAppointment';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useContext(AuthContext);
@@ -64,6 +65,12 @@ function App() {
             <Route path="/write-prescription" element={
               <ProtectedRoute allowedRoles={['doctor', 'admin']}>
                 <WritePrescription />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/book-appointment" element={
+              <ProtectedRoute allowedRoles={['patient', 'admin']}>
+                <BookAppointment />
               </ProtectedRoute>
             } />
 

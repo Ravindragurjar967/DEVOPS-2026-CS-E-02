@@ -2,11 +2,12 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import { FilePlus, Search, User, FileText, Calendar, CheckCircle2, Stethoscope, ArrowUpRight, Activity } from 'lucide-react';
+import { FilePlus, Search, User, FileText, Calendar, CheckCircle2, Stethoscope, ArrowUpRight, Activity, Ticket, Clock, PlayCircle } from 'lucide-react';
 
 const DoctorDashboard = () => {
   const { user } = useContext(AuthContext);
   const [prescriptions, setPrescriptions] = useState([]);
+  const [appointments, setAppointments] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,13 +15,17 @@ const DoctorDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchDoctorPrescriptions();
+    fetchDoctorData();
   }, []);
 
-  const fetchDoctorPrescriptions = async () => {
+  const fetchDoctorData = async () => {
     try {
-      const res = await axios.get('/api/prescriptions/my');
-      setPrescriptions(res.data);
+      const [rxRes, apptRes] = await Promise.all([
+        axios.get('/api/prescriptions/my'),
+        axios.get('/api/appointments/my')
+      ]);
+      setPrescriptions(rxRes.data);
+      setAppointments(apptRes.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -42,13 +47,22 @@ const DoctorDashboard = () => {
     }
   };
 
+  const updateApptStatus = async (apptId, status) => {
+    try {
+      await axios.put(`/api/appointments/${apptId}/status`, { status });
+      fetchDoctorData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       {/* Welcome Banner */}
       <div className="glass-card" style={{ background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%)', border: '1px solid rgba(14, 165, 233, 0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#38bdf8', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.3rem' }}>
-            <Stethoscope size={16} /> Doctor Portal
+            <Stethoscope size={16} /> Doctor Station
           </div>
           <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.8rem', fontWeight: 700 }}>
             Welcome, {user?.name}
@@ -62,14 +76,60 @@ const DoctorDashboard = () => {
         </Link>
       </div>
 
+      {/* Live Order-wise Appointments Token Queue */}
+      <div className="glass-card">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Ticket size={22} className="text-primary" /> Live Sequential Token Appointments Queue
+          </h3>
+          <span className="badge badge-doctor">{appointments.filter(a => a.status !== 'completed').length} Pending Patients</span>
+        </div>
+
+        {appointments.length === 0 ? (
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No appointment tokens booked for today yet.</p>
+        ) : (
+          <div className="grid-3">
+            {appointments.map((a) => (
+              <div key={a._id} className="glass-card" style={{ padding: '1rem', background: a.status === 'in_consultation' ? 'rgba(14, 165, 233, 0.15)' : 'rgba(15, 23, 42, 0.6)', border: a.status === 'in_consultation' ? '1px solid #38bdf8' : '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#38bdf8', background: 'rgba(14, 165, 233, 0.15)', padding: '0.25rem 0.6rem', borderRadius: '6px' }}>
+                    Token #{a.tokenNumber}
+                  </span>
+                  <span className={`badge ${a.status === 'in_consultation' ? 'badge-doctor' : a.status === 'completed' ? 'badge-patient' : 'badge-pharmacist'}`}>
+                    {a.status.replace('_', ' ')}
+                  </span>
+                </div>
+
+                <h4 style={{ fontSize: '1.05rem', fontWeight: 600 }}>{a.patientName}</h4>
+                <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Health ID: <strong style={{ color: '#38bdf8' }}>{a.patientHealthId}</strong></div>
+                <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>Reason: {a.reason}</div>
+
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.8rem', paddingTop: '0.6rem', borderTop: '1px solid var(--border-color)' }}>
+                  {a.status === 'pending' && (
+                    <button onClick={() => updateApptStatus(a._id, 'in_consultation')} className="btn btn-primary btn-sm" style={{ flex: 1 }}>
+                      <PlayCircle size={14} /> Start Consultation
+                    </button>
+                  )}
+                  {a.status === 'in_consultation' && (
+                    <button onClick={() => updateApptStatus(a._id, 'completed')} className="btn btn-accent btn-sm" style={{ flex: 1 }}>
+                      <CheckCircle2 size={14} /> Mark Completed
+                    </button>
+                  )}
+                  <Link to={`/write-prescription?healthId=${a.patientHealthId}&patientName=${encodeURIComponent(a.patientName)}`} className="btn btn-secondary btn-sm">
+                    <FilePlus size={14} /> Write RX
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Universal Patient Lookup Section */}
       <div className="glass-card">
         <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Search size={20} className="text-primary" /> Universal Patient Health Lookup
         </h3>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '1.25rem' }}>
-          Enter Patient Health ID (e.g. HID-2026-XXXX), Name, or Mobile Number to access past prescriptions & medical history.
-        </p>
 
         <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.75rem' }}>
           <input 
@@ -84,7 +144,6 @@ const DoctorDashboard = () => {
           </button>
         </form>
 
-        {/* Search Results */}
         {searchResults.length > 0 && (
           <div style={{ marginTop: '1.5rem' }}>
             <h4 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>Search Results ({searchResults.length}):</h4>
@@ -102,11 +161,6 @@ const DoctorDashboard = () => {
                       <FilePlus size={14} /> Write RX
                     </Link>
                   </div>
-                  <div style={{ display: 'flex', gap: '1rem', marginTop: '0.8rem', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                    <span>Age: {p.patientInfo?.age || 'N/A'} yrs</span>
-                    <span>Blood Group: <strong style={{ color: '#f43f5e' }}>{p.patientInfo?.bloodGroup || 'N/A'}</strong></span>
-                    <span>Phone: {p.phone}</span>
-                  </div>
                   <div style={{ marginTop: '0.8rem', paddingTop: '0.6rem', borderTop: '1px solid var(--border-color)', textAlign: 'right' }}>
                     <Link to={`/patient-record/${p.patientInfo?.healthId}`} style={{ fontSize: '0.82rem', color: '#38bdf8', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
                       View Complete Universal Health Record <ArrowUpRight size={14} />
@@ -117,45 +171,6 @@ const DoctorDashboard = () => {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Quick Stats Grid */}
-      <div className="grid-3">
-        <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-          <div style={{ padding: '1rem', background: 'rgba(14, 165, 233, 0.12)', borderRadius: '16px', color: '#0ea5e9' }}>
-            <FileText size={32} />
-          </div>
-          <div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 700, fontFamily: 'var(--font-heading)' }}>
-              {prescriptions.length}
-            </div>
-            <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>Total RX Issued</div>
-          </div>
-        </div>
-
-        <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-          <div style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.12)', borderRadius: '16px', color: '#10b981' }}>
-            <CheckCircle2 size={32} />
-          </div>
-          <div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 700, fontFamily: 'var(--font-heading)' }}>
-              {prescriptions.filter(p => p.status === 'active').length}
-            </div>
-            <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>Active Digital RX</div>
-          </div>
-        </div>
-
-        <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-          <div style={{ padding: '1rem', background: 'rgba(245, 158, 11, 0.12)', borderRadius: '16px', color: '#f59e0b' }}>
-            <Activity size={32} />
-          </div>
-          <div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 700, fontFamily: 'var(--font-heading)' }}>
-              {new Set(prescriptions.map(p => p.patientHealthId)).size}
-            </div>
-            <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>Patients Managed</div>
-          </div>
-        </div>
       </div>
 
       {/* Recent Prescriptions Table */}

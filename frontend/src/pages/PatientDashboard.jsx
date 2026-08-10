@@ -3,14 +3,20 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { QRCodeSVG } from 'qrcode.react';
-import { FileText, User, Activity, QrCode, Download, ExternalLink, ShieldCheck, Heart, AlertTriangle } from 'lucide-react';
+import { FileText, User, Activity, QrCode, Download, ExternalLink, ShieldCheck, Heart, AlertTriangle, Calendar, Bot, Lock, Unlock } from 'lucide-react';
+import AIChatbotModal from '../components/AIChatbotModal';
 
 const PatientDashboard = () => {
-  const { user } = useContext(AuthContext);
+  const { user, setUser } = useContext(AuthContext);
   const [prescriptions, setPrescriptions] = useState([]);
   const [reports, setReports] = useState([]);
+  const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showQrModal, setShowQrModal] = useState(false);
+  const [showAiBot, setShowAiBot] = useState(false);
+  const [doctorConsent, setDoctorConsent] = useState(
+    user?.patientInfo?.doctorConsentGranted !== false
+  );
+  const [togglingConsent, setTogglingConsent] = useState(false);
 
   useEffect(() => {
     fetchPatientData();
@@ -18,12 +24,14 @@ const PatientDashboard = () => {
 
   const fetchPatientData = async () => {
     try {
-      const [rxRes, reportRes] = await Promise.all([
+      const [rxRes, reportRes, apptRes] = await Promise.all([
         axios.get('/api/prescriptions/my'),
-        axios.get('/api/reports/my')
+        axios.get('/api/reports/my'),
+        axios.get('/api/appointments/my')
       ]);
       setPrescriptions(rxRes.data);
       setReports(reportRes.data);
+      setAppointments(apptRes.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -31,12 +39,28 @@ const PatientDashboard = () => {
     }
   };
 
+  const handleToggleConsent = async () => {
+    const newConsent = !doctorConsent;
+    setTogglingConsent(true);
+    try {
+      await axios.put('/api/patients/toggle-consent', { granted: newConsent });
+      setDoctorConsent(newConsent);
+      if (user && user.patientInfo) {
+        const updatedUser = { ...user, patientInfo: { ...user.patientInfo, doctorConsentGranted: newConsent } };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setTogglingConsent(false);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       {/* Patient Universal Health ID Card Banner */}
       <div className="glass-card" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', border: '1px solid rgba(14, 165, 233, 0.4)', borderRadius: '20px', padding: '2rem', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', right: '-40px', top: '-40px', width: '200px', height: '200px', background: 'radial-gradient(circle, rgba(14,165,233,0.15) 0%, transparent 70%)', borderRadius: '50%' }}></div>
-
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', position: 'relative', zIndex: 10 }}>
           <div>
             <span className="badge badge-patient" style={{ marginBottom: '0.5rem' }}>
@@ -46,21 +70,27 @@ const PatientDashboard = () => {
               {user?.name}
             </h1>
             <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', marginTop: '0.8rem', fontSize: '0.9rem', color: '#94a3b8' }}>
-              <span>Health ID: <strong style={{ color: '#38bdf8' }}>{user?.healthId || 'HID-2026-PENDING'}</strong></span>
+              <span>Health ID: <strong style={{ color: '#38bdf8' }}>{user?.healthId || user?.patientInfo?.healthId || 'HID-2026-DEMO'}</strong></span>
               <span>Blood Group: <strong style={{ color: '#f43f5e' }}>{user?.patientInfo?.bloodGroup || 'O+'}</strong></span>
               <span>Age: {user?.patientInfo?.age || '32'} yrs</span>
-              <span>Gender: {user?.patientInfo?.gender || 'Male'}</span>
             </div>
 
-            {user?.patientInfo?.allergies && user.patientInfo.allergies.length > 0 && (
-              <div style={{ marginTop: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#fbbf24', fontSize: '0.85rem' }}>
-                <AlertTriangle size={15} /> Known Allergies: <strong>{user.patientInfo.allergies.join(', ')}</strong>
+            {/* Doctor Access Permission Toggle */}
+            <div style={{ marginTop: '1rem', background: 'rgba(255,255,255,0.05)', padding: '0.75rem 1rem', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.8rem' }}>
+              <div style={{ fontSize: '0.85rem' }}>
+                <strong style={{ color: doctorConsent ? '#10b981' : '#f43f5e', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  {doctorConsent ? <Unlock size={16} /> : <Lock size={16} />}
+                  Doctor Record Permission: {doctorConsent ? 'GRANTED (Doctors can view history)' : 'RESTRICTED (Doctors cannot view history)'}
+                </strong>
               </div>
-            )}
+              <button onClick={handleToggleConsent} className={`btn btn-sm ${doctorConsent ? 'btn-secondary' : 'btn-accent'}`} disabled={togglingConsent}>
+                {doctorConsent ? 'Revoke Doctor Access' : 'Grant Doctor Access'}
+              </button>
+            </div>
           </div>
 
-          <div style={{ textAlign: 'center', background: '#ffffff', padding: '1rem', borderRadius: '14px', border: '2px solid #38bdf8', boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
-            <QRCodeSVG value={JSON.stringify({ healthId: user?.healthId, name: user?.name })} size={100} />
+          <div style={{ textAlign: 'center', background: '#ffffff', padding: '1rem', borderRadius: '14px', border: '2px solid #38bdf8' }}>
+            <QRCodeSVG value={JSON.stringify({ healthId: user?.healthId || user?.patientInfo?.healthId, name: user?.name })} size={100} />
             <div style={{ fontSize: '0.72rem', color: '#1e293b', fontWeight: 700, marginTop: '0.4rem' }}>
               SCAN HEALTH CARD
             </div>
@@ -68,38 +98,59 @@ const PatientDashboard = () => {
         </div>
       </div>
 
-      {/* Quick Action Grid */}
+      {/* Action CTA Grid */}
       <div className="grid-3">
-        <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ padding: '0.9rem', background: 'rgba(14, 165, 233, 0.15)', borderRadius: '14px', color: '#0ea5e9' }}>
-            <FileText size={28} />
+        <Link to="/book-appointment" className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(14, 165, 233, 0.05) 100%)', border: '1px solid rgba(14, 165, 233, 0.3)' }}>
+          <div style={{ padding: '0.9rem', background: '#0ea5e9', borderRadius: '14px', color: '#fff' }}>
+            <Calendar size={28} />
           </div>
           <div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{prescriptions.length}</div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Digital Prescriptions</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>Book Appointment</div>
+            <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Get sequential token number</div>
+          </div>
+        </Link>
+
+        <div onClick={() => setShowAiBot(true)} className="glass-card" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '1rem', background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.05) 100%)', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+          <div style={{ padding: '0.9rem', background: '#8b5cf6', borderRadius: '14px', color: '#fff' }}>
+            <Bot size={28} />
+          </div>
+          <div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>AI Personal Health Bot</div>
+            <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Ask symptoms & disease advice</div>
           </div>
         </div>
 
-        <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <Link to="/my-reports" className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <div style={{ padding: '0.9rem', background: 'rgba(16, 185, 129, 0.15)', borderRadius: '14px', color: '#10b981' }}>
             <Activity size={28} />
           </div>
           <div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{reports.length}</div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Lab Reports Uploaded</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>{reports.length} Lab Reports</div>
+            <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>View online diagnostic tests</div>
           </div>
-        </div>
-
-        <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ padding: '0.9rem', background: 'rgba(245, 158, 11, 0.15)', borderRadius: '14px', color: '#f59e0b' }}>
-            <Heart size={28} />
-          </div>
-          <div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>100% Digital</div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Paperless Universal Access</div>
-          </div>
-        </div>
+        </Link>
       </div>
+
+      {/* Booked Appointments Tokens List */}
+      {appointments.length > 0 && (
+        <div className="glass-card">
+          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Calendar size={20} className="text-primary" /> My Booked Doctor Appointments
+          </h3>
+          <div className="grid-3">
+            {appointments.map((a) => (
+              <div key={a._id} style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid var(--border-color)', padding: '1rem', borderRadius: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                  <span style={{ fontSize: '1rem', fontWeight: 800, color: '#38bdf8' }}>Token #{a.tokenNumber}</span>
+                  <span className="badge badge-doctor">{a.status}</span>
+                </div>
+                <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Dr. {a.doctorName}</div>
+                <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{a.date} ({a.timeSlot})</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Prescriptions List */}
       <div className="glass-card">
@@ -136,17 +187,6 @@ const PatientDashboard = () => {
                     <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Diagnosis:</div>
                     <div style={{ fontWeight: 600, fontSize: '0.92rem' }}>{rx.diagnosis}</div>
                   </div>
-
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.8rem' }}>
-                    <strong>Prescribed Medicines ({rx.medicines?.length || 0}):</strong>
-                    <ul style={{ paddingLeft: '1.2rem', marginTop: '0.3rem' }}>
-                      {rx.medicines?.map((m, i) => (
-                        <li key={i} style={{ marginBottom: '0.2rem' }}>
-                          <strong style={{ color: '#f8fafc' }}>{m.name}</strong> ({m.dosage}) - {m.frequency} for {m.duration}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)' }}>
@@ -160,16 +200,8 @@ const PatientDashboard = () => {
         )}
       </div>
 
-      {/* Reports Section Link Banner */}
-      <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.15rem' }}>Medical & Diagnostic Reports</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>View lab results, blood tests, X-rays, and diagnostic reports online.</p>
-        </div>
-        <Link to="/my-reports" className="btn btn-secondary">
-          <ExternalLink size={16} /> View Lab Reports Portal
-        </Link>
-      </div>
+      {/* Floating AI Chatbot Modal */}
+      {showAiBot && <AIChatbotModal onClose={() => setShowAiBot(false)} />}
     </div>
   );
 };
