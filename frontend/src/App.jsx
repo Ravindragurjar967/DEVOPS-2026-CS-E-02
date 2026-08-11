@@ -12,6 +12,7 @@ import PharmacistDashboard from './pages/PharmacistDashboard';
 import WritePrescription from './pages/WritePrescription';
 import PrescriptionView from './pages/PrescriptionView';
 import UniversalPatientRecord from './pages/UniversalPatientRecord';
+import PatientRecords from './pages/PatientRecords';
 import MyReports from './pages/MyReports';
 import BookAppointment from './pages/BookAppointment';
 
@@ -88,7 +89,7 @@ function App() {
 
             <Route path="/search-patients" element={
               <ProtectedRoute allowedRoles={['doctor', 'admin']}>
-                <DoctorDashboard />
+                <PatientRecords />
               </ProtectedRoute>
             } />
 
