@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { NavLink } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { LayoutDashboard, FilePlus, FileText, Search, Pill, Activity, User, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, FilePlus, FileText, Search, Pill, Activity, User, ShieldCheck, Shield } from 'lucide-react';
 
 const Sidebar = () => {
   const { user } = useContext(AuthContext);
@@ -18,6 +18,31 @@ const Sidebar = () => {
         <LayoutDashboard size={18} />
         <span>Dashboard</span>
       </NavLink>
+
+      {user.role === 'admin' && (
+        <>
+          <NavLink to="/admin" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`} style={{ color: '#a78bfa' }}>
+            <Shield size={18} />
+            <span>Super Admin Console</span>
+          </NavLink>
+          <NavLink to="/write-prescription" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}>
+            <FilePlus size={18} />
+            <span>Doctor RX Station</span>
+          </NavLink>
+          <NavLink to="/search-patients" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}>
+            <Search size={18} />
+            <span>Patient Records</span>
+          </NavLink>
+          <NavLink to="/pharmacist-verify" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}>
+            <Pill size={18} />
+            <span>Pharmacy Counter</span>
+          </NavLink>
+          <NavLink to="/my-reports" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}>
+            <Activity size={18} />
+            <span>All Lab Reports</span>
+          </NavLink>
+        </>
+      )}
 
       {user.role === 'doctor' && (
         <>

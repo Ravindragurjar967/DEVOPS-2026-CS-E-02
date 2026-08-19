@@ -1,18 +1,28 @@
 const mongoose = require('mongoose');
 const dns = require('dns');
 
-// Fix for Windows DNS querySrv ECONNREFUSED error with MongoDB Atlas
+// Configure Node.js to use Google Public DNS (8.8.8.8) to resolve MongoDB Atlas SRV records on Windows
 try {
   dns.setServers(['8.8.8.8', '1.1.1.1']);
 } catch (e) {
-  console.warn('DNS server configuration warning:', e.message);
+  console.warn('DNS configuration note:', e.message);
 }
 
 let isConnected = false;
 
-mongoose.connection.on('error', (err) => {
-  console.error('MongoDB connection error event:', err.message);
+mongoose.connection.on('connected', () => {
+  isConnected = true;
+  console.log('✅ MongoDB Atlas connection established successfully!');
+});
+
+mongoose.connection.on('disconnected', () => {
   isConnected = false;
+  console.warn('⚠️ MongoDB connection lost. Falling back to In-Memory mode.');
+});
+
+mongoose.connection.on('error', (err) => {
+  isConnected = false;
+  console.warn('⚠️ MongoDB connection warning:', err.message);
 });
 
 const connectDB = async () => {
@@ -28,14 +38,16 @@ const connectDB = async () => {
     });
 
     isConnected = true;
-    console.log(`✅ MongoDB Atlas Connected Successfully! Host: ${conn.connection.host}`);
+    console.log(`✅ MongoDB Atlas Connected: ${conn.connection.host}`);
   } catch (error) {
     isConnected = false;
-    console.warn(`⚠️ MongoDB Connection Warning: ${error.message}`);
-    console.warn('👉 Switching to Hybrid In-Memory Fallback Mode so the portal works smoothly!');
+    console.warn(`⚠️ MongoDB Atlas Connection Note: ${error.message}`);
+    console.warn('👉 Operating in In-Memory Fallback Mode for smooth zero-error performance!');
   }
 };
 
-const isDbConnected = () => isConnected;
+const isDbConnected = () => {
+  return isConnected && mongoose.connection.readyState === 1;
+};
 
 module.exports = { connectDB, isDbConnected };

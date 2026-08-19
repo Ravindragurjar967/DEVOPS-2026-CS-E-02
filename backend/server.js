@@ -22,6 +22,7 @@ app.use('/api/patients', require('./routes/patients'));
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/appointments', require('./routes/appointments'));
 app.use('/api/ai-chatbot', require('./routes/aiChatbot'));
+app.use('/api/admin', require('./routes/admin'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

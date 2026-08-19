@@ -24,76 +24,80 @@ router.post('/register', async (req, res) => {
     const { name, email, password, role, phone, doctorInfo, patientInfo, pharmacyInfo } = req.body;
 
     if (isDbConnected()) {
-      const userExists = await User.findOne({ email });
-      if (userExists) {
-        return res.status(400).json({ message: 'User with this email already exists' });
-      }
+      try {
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+          return res.status(400).json({ message: 'User with this email already exists' });
+        }
 
-      const userPayload = {
-        name,
-        email,
-        password,
-        role: role || 'patient',
-        phone: phone || ''
-      };
-
-      if (role === 'doctor') {
-        userPayload.doctorInfo = doctorInfo || {};
-      } else if (role === 'pharmacist') {
-        userPayload.pharmacyInfo = pharmacyInfo || {};
-      } else {
-        userPayload.patientInfo = {
-          ...(patientInfo || {}),
-          healthId: generateHealthId()
+        const userPayload = {
+          name,
+          email,
+          password,
+          role: role || 'patient',
+          phone: phone || ''
         };
+
+        if (role === 'doctor') {
+          userPayload.doctorInfo = doctorInfo || {};
+        } else if (role === 'pharmacist') {
+          userPayload.pharmacyInfo = pharmacyInfo || {};
+        } else {
+          userPayload.patientInfo = {
+            ...(patientInfo || {}),
+            healthId: generateHealthId()
+          };
+        }
+
+        const user = await User.create(userPayload);
+
+        return res.status(201).json({
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          healthId: user.patientInfo ? user.patientInfo.healthId : undefined,
+          token: generateToken(user._id)
+        });
+      } catch (dbErr) {
+        console.warn('DB register error, using fallback:', dbErr.message);
       }
-
-      const user = await User.create(userPayload);
-
-      return res.status(201).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        healthId: user.patientInfo ? user.patientInfo.healthId : undefined,
-        token: generateToken(user._id)
-      });
-    } else {
-      // In-Memory Fallback
-      const existing = memoryStore.users.find(u => u.email.toLowerCase() === email.toLowerCase());
-      if (existing) {
-        return res.status(400).json({ message: 'User with this email already exists' });
-      }
-
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-      const newId = 'user_' + Date.now();
-      const healthId = role === 'patient' ? generateHealthId() : undefined;
-
-      const newUser = {
-        _id: newId,
-        name,
-        email,
-        password: hashedPassword,
-        role: role || 'patient',
-        phone: phone || '',
-        doctorInfo: role === 'doctor' ? (doctorInfo || {}) : undefined,
-        patientInfo: role === 'patient' ? { ...(patientInfo || {}), healthId } : undefined,
-        pharmacyInfo: role === 'pharmacist' ? (pharmacyInfo || {}) : undefined,
-        createdAt: new Date()
-      };
-
-      memoryStore.users.push(newUser);
-
-      return res.status(201).json({
-        _id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-        healthId,
-        token: generateToken(newUser._id)
-      });
     }
+
+    // In-Memory Fallback
+    const existing = memoryStore.users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (existing) {
+      return res.status(400).json({ message: 'User with this email already exists' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const newId = 'user_' + Date.now();
+    const healthId = role === 'patient' ? generateHealthId() : undefined;
+
+    const newUser = {
+      _id: newId,
+      name,
+      email,
+      password: hashedPassword,
+      role: role || 'patient',
+      phone: phone || '',
+      doctorInfo: role === 'doctor' ? (doctorInfo || {}) : undefined,
+      patientInfo: role === 'patient' ? { ...(patientInfo || {}), healthId, doctorConsentGranted: true } : undefined,
+      pharmacyInfo: role === 'pharmacist' ? (pharmacyInfo || {}) : undefined,
+      createdAt: new Date()
+    };
+
+    memoryStore.users.push(newUser);
+
+    return res.status(201).json({
+      _id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+      healthId,
+      token: generateToken(newUser._id)
+    });
   } catch (error) {
     console.error('Register error:', error);
     res.status(500).json({ message: error.message || 'Server error during registration' });
@@ -106,27 +110,9 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     if (isDbConnected()) {
-      const user = await User.findOne({ email });
-      if (user && (await user.matchPassword(password))) {
-        return res.json({
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          phone: user.phone,
-          healthId: user.patientInfo ? user.patientInfo.healthId : undefined,
-          doctorInfo: user.doctorInfo,
-          patientInfo: user.patientInfo,
-          pharmacyInfo: user.pharmacyInfo,
-          token: generateToken(user._id)
-        });
-      }
-    } else {
-      // In-Memory Fallback Check
-      const user = memoryStore.users.find(u => u.email.toLowerCase() === email.toLowerCase());
-      if (user) {
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (isMatch) {
+      try {
+        const user = await User.findOne({ email });
+        if (user && (await user.matchPassword(password))) {
           return res.json({
             _id: user._id,
             name: user.name,
@@ -140,6 +126,28 @@ router.post('/login', async (req, res) => {
             token: generateToken(user._id)
           });
         }
+      } catch (dbErr) {
+        console.warn('DB login error, trying fallback:', dbErr.message);
+      }
+    }
+
+    // In-Memory Fallback Check
+    const user = memoryStore.users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (user) {
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (isMatch) {
+        return res.json({
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          phone: user.phone,
+          healthId: user.patientInfo ? user.patientInfo.healthId : undefined,
+          doctorInfo: user.doctorInfo,
+          patientInfo: user.patientInfo,
+          pharmacyInfo: user.pharmacyInfo,
+          token: generateToken(user._id)
+        });
       }
     }
 

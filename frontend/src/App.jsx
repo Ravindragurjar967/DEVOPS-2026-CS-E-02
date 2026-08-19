@@ -9,6 +9,7 @@ import Register from './pages/Register';
 import DoctorDashboard from './pages/DoctorDashboard';
 import PatientDashboard from './pages/PatientDashboard';
 import PharmacistDashboard from './pages/PharmacistDashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import WritePrescription from './pages/WritePrescription';
 import PrescriptionView from './pages/PrescriptionView';
 import UniversalPatientRecord from './pages/UniversalPatientRecord';
@@ -38,6 +39,7 @@ const DashboardRouter = () => {
   const { user } = useContext(AuthContext);
   if (!user) return <Navigate to="/login" replace />;
 
+  if (user.role === 'admin') return <AdminDashboard />;
   if (user.role === 'doctor') return <DoctorDashboard />;
   if (user.role === 'patient') return <PatientDashboard />;
   if (user.role === 'pharmacist') return <PharmacistDashboard />;
@@ -60,6 +62,12 @@ function App() {
             <Route path="/" element={
               <ProtectedRoute>
                 <DashboardRouter />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/admin" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminDashboard />
               </ProtectedRoute>
             } />
 
@@ -94,7 +102,7 @@ function App() {
             } />
 
             <Route path="/my-prescriptions" element={
-              <ProtectedRoute allowedRoles={['patient']}>
+              <ProtectedRoute allowedRoles={['patient', 'admin']}>
                 <PatientDashboard />
               </ProtectedRoute>
             } />

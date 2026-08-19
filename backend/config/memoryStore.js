@@ -6,6 +6,15 @@ const defaultPasswordHash = bcrypt.hashSync('Password123!', 10);
 
 const memoryUsers = [
   {
+    _id: 'admin_1',
+    name: 'Super System Admin',
+    email: 'admin@medilink.com',
+    password: defaultPasswordHash,
+    role: 'admin',
+    phone: '+91 90000 00000',
+    createdAt: new Date()
+  },
+  {
     _id: 'doc_1',
     name: 'Dr. Rahul Sharma',
     email: 'dr.smith@medilink.com',
@@ -22,7 +31,7 @@ const memoryUsers = [
     password: defaultPasswordHash,
     role: 'patient',
     phone: '+91 91234 56789',
-    patientInfo: { healthId: 'HID-2026-8834', age: 34, gender: 'Male', bloodGroup: 'O+', allergies: ['Penicillin'] },
+    patientInfo: { healthId: 'HID-2026-8834', age: 34, gender: 'Male', bloodGroup: 'O+', allergies: ['Penicillin'], doctorConsentGranted: true },
     createdAt: new Date()
   },
   {
@@ -78,8 +87,11 @@ const memoryReports = [
   }
 ];
 
+const memoryAppointments = [];
+
 module.exports = {
   users: memoryUsers,
   prescriptions: memoryPrescriptions,
-  reports: memoryReports
+  reports: memoryReports,
+  appointments: memoryAppointments
 };

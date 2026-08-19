@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { Stethoscope, User, Pill, ArrowRight, ShieldCheck, Activity } from 'lucide-react';
+import { Stethoscope, User, Pill, ArrowRight, ShieldCheck, Activity, Shield } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -33,7 +33,16 @@ const Login = () => {
     let demoPass = 'Password123!';
     let demoData = {};
 
-    if (role === 'doctor') {
+    if (role === 'admin') {
+      demoEmail = 'admin@medilink.com';
+      demoData = {
+        name: 'Super System Admin',
+        email: demoEmail,
+        password: demoPass,
+        role: 'admin',
+        phone: '+91 90000 00000'
+      };
+    } else if (role === 'doctor') {
       demoEmail = 'dr.smith@medilink.com';
       demoData = {
         name: 'Dr. Rahul Sharma',
@@ -140,6 +149,9 @@ const Login = () => {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+          <button onClick={() => handleQuickDemo('admin')} className="btn btn-secondary btn-sm" style={{ justifyContent: 'flex-start', border: '1px solid rgba(139, 92, 246, 0.4)' }}>
+            <Shield size={16} style={{ color: '#a78bfa' }} /> Login as <strong>Super Admin (Control Portal)</strong>
+          </button>
           <button onClick={() => handleQuickDemo('doctor')} className="btn btn-secondary btn-sm" style={{ justifyContent: 'flex-start' }}>
             <Stethoscope size={16} className="text-primary" /> Login as <strong>Doctor (Dr. Rahul)</strong>
           </button>
