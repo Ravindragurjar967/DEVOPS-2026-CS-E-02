@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { UserPlus, Stethoscope, User, Pill, ArrowRight } from 'lucide-react';
+import { UserPlus, Stethoscope, User, Pill, ArrowRight, UploadCloud } from 'lucide-react';
 
 const Register = () => {
   const [role, setRole] = useState('patient');
@@ -24,6 +24,10 @@ const Register = () => {
   // Pharmacist specific fields
   const [pharmacyName, setPharmacyName] = useState('');
   const [pharmacyLicense, setPharmacyLicense] = useState('');
+
+  // Diagnostic Center specific fields
+  const [labName, setLabName] = useState('');
+  const [diagnosticLicense, setDiagnosticLicense] = useState('');
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -48,7 +52,8 @@ const Register = () => {
         bloodGroup, 
         allergies: allergies ? allergies.split(',').map(s => s.trim()) : [] 
       } : undefined,
-      pharmacyInfo: role === 'pharmacist' ? { pharmacyName, licenseNo: pharmacyLicense } : undefined
+      pharmacyInfo: role === 'pharmacist' ? { pharmacyName, licenseNo: pharmacyLicense } : undefined,
+      diagnosticCenterInfo: role === 'diagnostic_center' ? { labName, licenseNo: diagnosticLicense } : undefined
     };
 
     try {
@@ -63,7 +68,7 @@ const Register = () => {
 
   return (
     <div style={{ minHeight: 'calc(100vh - 80px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-      <div className="glass-card" style={{ width: '100%', maxWidth: '580px' }}>
+      <div className="glass-card" style={{ width: '100%', maxWidth: '620px' }}>
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.6rem', fontWeight: 700 }}>
             Join Universal Health Platform
@@ -74,27 +79,34 @@ const Register = () => {
         </div>
 
         {/* Role Selector Tabs */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginBottom: '1.5rem', background: 'rgba(15, 23, 42, 0.5)', padding: '0.35rem', borderRadius: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.4rem', marginBottom: '1.5rem', background: 'rgba(15, 23, 42, 0.5)', padding: '0.35rem', borderRadius: '12px' }}>
           <button 
             type="button"
             className={`btn btn-sm ${role === 'patient' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setRole('patient')}
           >
-            <User size={15} /> Patient
+            <User size={14} /> Patient
           </button>
           <button 
             type="button"
             className={`btn btn-sm ${role === 'doctor' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setRole('doctor')}
           >
-            <Stethoscope size={15} /> Doctor
+            <Stethoscope size={14} /> Doctor
+          </button>
+          <button 
+            type="button"
+            className={`btn btn-sm ${role === 'diagnostic_center' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setRole('diagnostic_center')}
+          >
+            <UploadCloud size={14} /> Lab / Scan Center
           </button>
           <button 
             type="button"
             className={`btn btn-sm ${role === 'pharmacist' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setRole('pharmacist')}
           >
-            <Pill size={15} /> Pharmacy
+            <Pill size={14} /> Pharmacy
           </button>
         </div>
 
@@ -108,7 +120,7 @@ const Register = () => {
           <div className="grid-2">
             <div className="form-group">
               <label>Full Name *</label>
-              <input type="text" className="input-field" placeholder="e.g. Dr. Rajesh or Amit" value={name} onChange={e=>setName(e.target.value)} required />
+              <input type="text" className="input-field" placeholder="e.g. Dr. Rajesh or Staff Name" value={name} onChange={e=>setName(e.target.value)} required />
             </div>
             <div className="form-group">
               <label>Phone Number *</label>
@@ -141,6 +153,19 @@ const Register = () => {
               <div className="form-group">
                 <label>Hospital / Clinic</label>
                 <input type="text" className="input-field" placeholder="City Clinic" value={hospital} onChange={e=>setHospital(e.target.value)} />
+              </div>
+            </div>
+          )}
+
+          {role === 'diagnostic_center' && (
+            <div className="grid-2">
+              <div className="form-group">
+                <label>Lab / Diagnostic Center Name *</label>
+                <input type="text" className="input-field" placeholder="e.g. Central MRI & Scan Lab" value={labName} onChange={e=>setLabName(e.target.value)} required />
+              </div>
+              <div className="form-group">
+                <label>Radiology / Lab License No *</label>
+                <input type="text" className="input-field" placeholder="e.g. RAD-8849" value={diagnosticLicense} onChange={e=>setDiagnosticLicense(e.target.value)} required />
               </div>
             </div>
           )}

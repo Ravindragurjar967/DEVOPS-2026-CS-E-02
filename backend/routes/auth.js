@@ -21,7 +21,7 @@ const generateHealthId = () => {
 // @route   POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, role, phone, doctorInfo, patientInfo, pharmacyInfo } = req.body;
+    const { name, email, password, role, phone, doctorInfo, patientInfo, pharmacyInfo, diagnosticCenterInfo } = req.body;
 
     if (isDbConnected()) {
       try {
@@ -42,6 +42,8 @@ router.post('/register', async (req, res) => {
           userPayload.doctorInfo = doctorInfo || {};
         } else if (role === 'pharmacist') {
           userPayload.pharmacyInfo = pharmacyInfo || {};
+        } else if (role === 'diagnostic_center') {
+          userPayload.diagnosticCenterInfo = diagnosticCenterInfo || {};
         } else {
           userPayload.patientInfo = {
             ...(patientInfo || {}),
@@ -85,6 +87,7 @@ router.post('/register', async (req, res) => {
       doctorInfo: role === 'doctor' ? (doctorInfo || {}) : undefined,
       patientInfo: role === 'patient' ? { ...(patientInfo || {}), healthId, doctorConsentGranted: true } : undefined,
       pharmacyInfo: role === 'pharmacist' ? (pharmacyInfo || {}) : undefined,
+      diagnosticCenterInfo: role === 'diagnostic_center' ? (diagnosticCenterInfo || {}) : undefined,
       createdAt: new Date()
     };
 
@@ -123,6 +126,7 @@ router.post('/login', async (req, res) => {
             doctorInfo: user.doctorInfo,
             patientInfo: user.patientInfo,
             pharmacyInfo: user.pharmacyInfo,
+            diagnosticCenterInfo: user.diagnosticCenterInfo,
             token: generateToken(user._id)
           });
         }
@@ -146,6 +150,7 @@ router.post('/login', async (req, res) => {
           doctorInfo: user.doctorInfo,
           patientInfo: user.patientInfo,
           pharmacyInfo: user.pharmacyInfo,
+          diagnosticCenterInfo: user.diagnosticCenterInfo,
           token: generateToken(user._id)
         });
       }

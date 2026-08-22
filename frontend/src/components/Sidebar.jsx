@@ -19,16 +19,15 @@ const Sidebar = () => {
         <span>Dashboard</span>
       </NavLink>
 
-      <NavLink to="/diagnosis-center" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`} style={{ color: '#38bdf8' }}>
-        <UploadCloud size={18} />
-        <span>Diagnosis & Scans Vault</span>
-      </NavLink>
-
       {user.role === 'admin' && (
         <>
           <NavLink to="/admin" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`} style={{ color: '#a78bfa' }}>
             <Shield size={18} />
             <span>Super Admin Console</span>
+          </NavLink>
+          <NavLink to="/diagnosis-center" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}>
+            <UploadCloud size={18} />
+            <span>Diagnosis & Scans Vault</span>
           </NavLink>
           <NavLink to="/write-prescription" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}>
             <FilePlus size={18} />
@@ -49,6 +48,15 @@ const Sidebar = () => {
         </>
       )}
 
+      {user.role === 'diagnostic_center' && (
+        <>
+          <NavLink to="/diagnosis-center" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`} style={{ color: '#38bdf8' }}>
+            <UploadCloud size={18} />
+            <span>Diagnosis & Upload Portal</span>
+          </NavLink>
+        </>
+      )}
+
       {user.role === 'doctor' && (
         <>
           <NavLink to="/write-prescription" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}>
@@ -59,6 +67,10 @@ const Sidebar = () => {
             <Search size={18} />
             <span>Patient Records</span>
           </NavLink>
+          <NavLink to="/diagnosis-center" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}>
+            <UploadCloud size={18} />
+            <span>Patient Scans & Reports</span>
+          </NavLink>
         </>
       )}
 
@@ -67,6 +79,10 @@ const Sidebar = () => {
           <NavLink to="/my-prescriptions" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}>
             <FileText size={18} />
             <span>My Prescriptions</span>
+          </NavLink>
+          <NavLink to="/diagnosis-center" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}>
+            <UploadCloud size={18} />
+            <span>My Diagnostic Scans</span>
           </NavLink>
           <NavLink to="/my-reports" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}>
             <Activity size={18} />
@@ -80,6 +96,10 @@ const Sidebar = () => {
           <NavLink to="/pharmacist-verify" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}>
             <Pill size={18} />
             <span>Verify & Dispense</span>
+          </NavLink>
+          <NavLink to="/diagnosis-center" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}>
+            <UploadCloud size={18} />
+            <span>Diagnosis Scans Vault</span>
           </NavLink>
         </>
       )}

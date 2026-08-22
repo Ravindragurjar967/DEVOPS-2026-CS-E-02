@@ -44,6 +44,7 @@ const DashboardRouter = () => {
   if (user.role === 'doctor') return <DoctorDashboard />;
   if (user.role === 'patient') return <PatientDashboard />;
   if (user.role === 'pharmacist') return <PharmacistDashboard />;
+  if (user.role === 'diagnostic_center') return <DiagnosisCenter />;
   return <DoctorDashboard />;
 };
 
@@ -73,7 +74,7 @@ function App() {
             } />
 
             <Route path="/diagnosis-center" element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['diagnostic_center', 'doctor', 'pharmacist', 'patient', 'admin']}>
                 <DiagnosisCenter />
               </ProtectedRoute>
             } />

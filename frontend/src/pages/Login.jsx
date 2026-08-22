@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { Stethoscope, User, Pill, ArrowRight, ShieldCheck, Activity, Shield } from 'lucide-react';
+import { Stethoscope, User, Pill, ArrowRight, ShieldCheck, Activity, Shield, UploadCloud } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -71,6 +71,16 @@ const Login = () => {
         role: 'pharmacist',
         phone: '+91 99887 76655',
         pharmacyInfo: { pharmacyName: 'Apollo MedPlus Pharmacy', licenseNo: 'PH-33921' }
+      };
+    } else if (role === 'diagnostic_center') {
+      demoEmail = 'lab.diagnostic@medilink.com';
+      demoData = {
+        name: 'Central Diagnostic Radiology Staff',
+        email: demoEmail,
+        password: demoPass,
+        role: 'diagnostic_center',
+        phone: '+91 99000 11223',
+        diagnosticCenterInfo: { labName: 'Central MRI & Pathology Scan Center', licenseNo: 'RAD-88391' }
       };
     }
 
@@ -154,6 +164,9 @@ const Login = () => {
           </button>
           <button onClick={() => handleQuickDemo('doctor')} className="btn btn-secondary btn-sm" style={{ justifyContent: 'flex-start' }}>
             <Stethoscope size={16} className="text-primary" /> Login as <strong>Doctor (Dr. Rahul)</strong>
+          </button>
+          <button onClick={() => handleQuickDemo('diagnostic_center')} className="btn btn-secondary btn-sm" style={{ justifyContent: 'flex-start', border: '1px solid rgba(14, 165, 233, 0.4)' }}>
+            <UploadCloud size={16} style={{ color: '#38bdf8' }} /> Login as <strong>Diagnostic Center (Scans / Lab Staff)</strong>
           </button>
           <button onClick={() => handleQuickDemo('patient')} className="btn btn-secondary btn-sm" style={{ justifyContent: 'flex-start' }}>
             <User size={16} style={{ color: '#10b981' }} /> Login as <strong>Patient (Amit Kumar)</strong>

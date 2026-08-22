@@ -43,6 +43,16 @@ const memoryUsers = [
     phone: '+91 99887 76655',
     pharmacyInfo: { pharmacyName: 'Apollo MedPlus Pharmacy', licenseNo: 'PH-33921' },
     createdAt: new Date()
+  },
+  {
+    _id: 'diag_1',
+    name: 'Central Diagnostic Radiology Staff',
+    email: 'lab.diagnostic@medilink.com',
+    password: defaultPasswordHash,
+    role: 'diagnostic_center',
+    phone: '+91 99000 11223',
+    diagnosticCenterInfo: { labName: 'Central MRI & Pathology Scan Center', licenseNo: 'RAD-88391' },
+    createdAt: new Date()
   }
 ];
 
@@ -75,7 +85,7 @@ const memoryReports = [
     patient: 'pat_1',
     patientHealthId: 'HID-2026-8834',
     title: 'Complete Blood Count (CBC)',
-    category: 'Blood Test',
+    category: 'Blood Test (CBC)',
     labName: 'Central Diagnostics Lab',
     summary: 'Hemoglobin and WBC within normal limits.',
     results: [
