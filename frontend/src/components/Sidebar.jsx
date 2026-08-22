@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { NavLink } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { LayoutDashboard, FilePlus, FileText, Search, Pill, Activity, User, ShieldCheck, Shield } from 'lucide-react';
+import { LayoutDashboard, FilePlus, FileText, Search, Pill, Activity, User, ShieldCheck, Shield, UploadCloud } from 'lucide-react';
 
 const Sidebar = () => {
   const { user } = useContext(AuthContext);
@@ -17,6 +17,11 @@ const Sidebar = () => {
       <NavLink to="/" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}>
         <LayoutDashboard size={18} />
         <span>Dashboard</span>
+      </NavLink>
+
+      <NavLink to="/diagnosis-center" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`} style={{ color: '#38bdf8' }}>
+        <UploadCloud size={18} />
+        <span>Diagnosis & Scans Vault</span>
       </NavLink>
 
       {user.role === 'admin' && (

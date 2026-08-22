@@ -14,6 +14,7 @@ import WritePrescription from './pages/WritePrescription';
 import PrescriptionView from './pages/PrescriptionView';
 import UniversalPatientRecord from './pages/UniversalPatientRecord';
 import PatientRecords from './pages/PatientRecords';
+import DiagnosisCenter from './pages/DiagnosisCenter';
 import MyReports from './pages/MyReports';
 import BookAppointment from './pages/BookAppointment';
 
@@ -68,6 +69,12 @@ function App() {
             <Route path="/admin" element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminDashboard />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/diagnosis-center" element={
+              <ProtectedRoute>
+                <DiagnosisCenter />
               </ProtectedRoute>
             } />
 

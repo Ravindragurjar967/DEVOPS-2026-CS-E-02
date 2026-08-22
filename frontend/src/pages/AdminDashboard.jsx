@@ -121,6 +121,7 @@ const AdminDashboard = () => {
   };
 
   // Delete Handlers
+
   const handleDeleteUser = async (id, name) => {
     if (!window.confirm(`Are you sure you want to delete user "${name}"?`)) return;
     try {
@@ -151,7 +152,7 @@ const AdminDashboard = () => {
     }
   };
 
-  // Filter Users by Role & Search
+  // Filter Users by Role & Search 
   const doctorsList = users.filter(u => u.role === 'doctor' && (u.name?.toLowerCase().includes(searchTerm.toLowerCase()) || u.email?.toLowerCase().includes(searchTerm.toLowerCase())));
   const patientsList = users.filter(u => u.role === 'patient' && (u.name?.toLowerCase().includes(searchTerm.toLowerCase()) || u.email?.toLowerCase().includes(searchTerm.toLowerCase()) || u.patientInfo?.healthId?.toLowerCase().includes(searchTerm.toLowerCase())));
   const pharmaciesList = users.filter(u => u.role === 'pharmacist' && (u.name?.toLowerCase().includes(searchTerm.toLowerCase()) || u.email?.toLowerCase().includes(searchTerm.toLowerCase()) || u.pharmacyInfo?.pharmacyName?.toLowerCase().includes(searchTerm.toLowerCase())));
@@ -553,7 +554,7 @@ const AdminDashboard = () => {
                     <option value="doctor">Doctor</option>
                     <option value="patient">Patient</option>
                     <option value="pharmacist">Pharmacist</option>
-                    <option value="admin">Super Admin</option>
+                    {/* <option value="admin">Super Admin</option> */}
                   </select>
                 </div>
                 <div className="form-group">
