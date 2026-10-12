@@ -20,8 +20,12 @@ const Navbar = () => {
         return <span className="badge badge-pharmacist"><Pill size={13} /> Pharmacy Staff</span>;
       case 'patient':
         return <span className="badge badge-patient"><UserIcon size={13} /> Patient</span>;
+      case 'admin':
+        return <span className="badge" style={{ background: 'rgba(139, 92, 246, 0.2)', color: '#a78bfa', border: '1px solid rgba(139, 92, 246, 0.4)' }}><Shield size={13} /> Super Admin</span>;
+      case 'diagnostic_center':
+        return <span className="badge" style={{ background: 'rgba(14, 165, 233, 0.2)', color: '#38bdf8', border: '1px solid rgba(14, 165, 233, 0.4)' }}><Activity size={13} /> Diagnostic Lab</span>;
       default:
-        return <span className="badge badge-doctor"><Shield size={13} /> {role}</span>;
+        return <span className="badge badge-secondary">{role}</span>;
     }
   };
 
