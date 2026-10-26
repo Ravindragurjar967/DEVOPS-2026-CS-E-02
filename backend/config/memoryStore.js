@@ -99,9 +99,151 @@ const memoryReports = [
 
 const memoryAppointments = [];
 
+const memoryBloodDonors = [
+  {
+    _id: 'donor_1',
+    donorName: 'Vikram Choudhary',
+    patientHealthId: 'HID-2026-9102',
+    userId: 'pat_1',
+    bloodGroup: 'O+',
+    age: 28,
+    gender: 'Male',
+    phone: '+91 98290 12345',
+    email: 'vikram.donor@gmail.com',
+    city: 'Jaipur',
+    state: 'Rajasthan',
+    address: 'Mansarovar, Jaipur',
+    lastDonationDate: new Date('2026-06-15'),
+    isAvailable: true,
+    medicalCertificateUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=60',
+    eligibilityQuestions: {
+      weightAbove50Kg: true,
+      noTattoosPast6Months: true,
+      noMajorSurgeryPast1Year: true,
+      notOnBloodThinners: true
+    },
+    verificationStatus: 'verified',
+    verifiedBy: 'doc_1',
+    verifiedByName: 'Dr. Rahul Sharma',
+    verifiedAt: new Date('2026-07-01'),
+    doctorNotes: 'Clinically tested and verified fit for whole blood donation. Hemoglobin 14.8 g/dL.'
+  },
+  {
+    _id: 'donor_2',
+    donorName: 'Priya Sharma',
+    patientHealthId: 'HID-2026-4431',
+    userId: 'pat_1',
+    bloodGroup: 'B+',
+    age: 24,
+    gender: 'Female',
+    phone: '+91 98765 99881',
+    email: 'priya.sharma99@gmail.com',
+    city: 'Jaipur',
+    state: 'Rajasthan',
+    address: 'Malviya Nagar, Jaipur',
+    lastDonationDate: new Date('2026-04-10'),
+    isAvailable: true,
+    medicalCertificateUrl: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=800&auto=format&fit=crop&q=60',
+    eligibilityQuestions: {
+      weightAbove50Kg: true,
+      noTattoosPast6Months: true,
+      noMajorSurgeryPast1Year: true,
+      notOnBloodThinners: true
+    },
+    verificationStatus: 'verified',
+    verifiedBy: 'doc_1',
+    verifiedByName: 'Dr. Rahul Sharma',
+    verifiedAt: new Date('2026-05-02'),
+    doctorNotes: 'Fitness certificate approved. Regular voluntary donor.'
+  },
+  {
+    _id: 'donor_3',
+    donorName: 'Rahul Verma',
+    patientHealthId: 'HID-2026-7782',
+    userId: 'pat_1',
+    bloodGroup: 'AB-',
+    age: 32,
+    gender: 'Male',
+    phone: '+91 94140 55667',
+    email: 'rahul.verma@outlook.com',
+    city: 'Jaipur',
+    state: 'Rajasthan',
+    address: 'Vaishali Nagar, Jaipur',
+    lastDonationDate: null,
+    isAvailable: true,
+    medicalCertificateUrl: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&auto=format&fit=crop&q=60',
+    eligibilityQuestions: {
+      weightAbove50Kg: true,
+      noTattoosPast6Months: true,
+      noMajorSurgeryPast1Year: true,
+      notOnBloodThinners: true
+    },
+    verificationStatus: 'pending',
+    verifiedBy: null,
+    verifiedByName: '',
+    verifiedAt: null,
+    doctorNotes: 'Awaiting clinical review and medical fitness check by doctor.'
+  }
+];
+
+const memoryBloodRequests = [
+  {
+    _id: 'req_1',
+    requestId: 'BLD-REQ-2026-1001',
+    patientName: 'Sunita Devi',
+    patientHealthId: 'HID-2026-5521',
+    requestedBy: 'pat_1',
+    requestedByName: 'Amit Kumar',
+    bloodGroup: 'O+',
+    unitsNeeded: 2,
+    urgency: 'critical',
+    hospitalName: 'SMS Hospital & Medical College',
+    hospitalCity: 'Jaipur',
+    hospitalAddress: 'Emergency Ward Bed 14, SMS Hospital, Jaipur',
+    contactPhone: '+91 91234 56789',
+    reasonForBlood: 'Emergency cardiac surgery scheduled tomorrow morning',
+    doctorPrescriptionUrl: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=800&auto=format&fit=crop&q=60',
+    additionalDocsUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=60',
+    verificationStatus: 'verified',
+    verifiedBy: 'doc_1',
+    verifiedByName: 'Dr. Rahul Sharma',
+    verifiedAt: new Date(),
+    doctorNotes: 'Prescription slip verified from SMS Hospital Cardio Dept. Genuine emergency case.',
+    status: 'open',
+    createdAt: new Date()
+  },
+  {
+    _id: 'req_2',
+    requestId: 'BLD-REQ-2026-1002',
+    patientName: 'Mohan Lal Sharma',
+    patientHealthId: 'HID-2026-8841',
+    requestedBy: 'pat_1',
+    requestedByName: 'Amit Kumar',
+    bloodGroup: 'B-',
+    unitsNeeded: 1,
+    urgency: 'urgent',
+    hospitalName: 'Fortis Escorts Hospital',
+    hospitalCity: 'Jaipur',
+    hospitalAddress: 'Jawahar Lal Nehru Marg, Jaipur',
+    contactPhone: '+91 98290 88776',
+    reasonForBlood: 'Low platelet count & severe dengue treatment',
+    doctorPrescriptionUrl: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&auto=format&fit=crop&q=60',
+    additionalDocsUrl: '',
+    verificationStatus: 'pending',
+    verifiedBy: null,
+    verifiedByName: '',
+    verifiedAt: null,
+    doctorNotes: 'Under verification by attending clinical doctor.',
+    status: 'open',
+    createdAt: new Date()
+  }
+];
+
 module.exports = {
   users: memoryUsers,
   prescriptions: memoryPrescriptions,
   reports: memoryReports,
-  appointments: memoryAppointments
+  appointments: memoryAppointments,
+  bloodDonors: memoryBloodDonors,
+  bloodRequests: memoryBloodRequests
 };
