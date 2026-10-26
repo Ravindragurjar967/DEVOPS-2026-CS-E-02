@@ -24,6 +24,7 @@ app.use('/api/appointments', require('./routes/appointments'));
 app.use('/api/ai-chatbot', require('./routes/aiChatbot'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/diagnosis', require('./routes/diagnosis'));
+app.use('/api/blood-bank', require('./routes/bloodBank'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
