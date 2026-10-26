@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { NavLink } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { LayoutDashboard, FilePlus, FileText, Search, Pill, Activity, User, ShieldCheck, Shield, UploadCloud } from 'lucide-react';
+import { LayoutDashboard, FilePlus, FileText, Search, Pill, Activity, User, ShieldCheck, Shield, UploadCloud, Heart, Droplet } from 'lucide-react';
 
 const Sidebar = () => {
   const { user } = useContext(AuthContext);
@@ -17,6 +17,11 @@ const Sidebar = () => {
       <NavLink to="/" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}>
         <LayoutDashboard size={18} />
         <span>Dashboard</span>
+      </NavLink>
+
+      <NavLink to="/blood-bank" className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`} style={{ color: '#f87171' }}>
+        <Heart size={18} />
+        <span>Blood Bank & Donors</span>
       </NavLink>
 
       {user.role === 'admin' && (

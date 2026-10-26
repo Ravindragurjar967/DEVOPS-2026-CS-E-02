@@ -17,6 +17,7 @@ import PatientRecords from './pages/PatientRecords';
 import DiagnosisCenter from './pages/DiagnosisCenter';
 import MyReports from './pages/MyReports';
 import BookAppointment from './pages/BookAppointment';
+import BloodBank from './pages/BloodBank';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useContext(AuthContext);
@@ -76,6 +77,12 @@ function App() {
             <Route path="/diagnosis-center" element={
               <ProtectedRoute allowedRoles={['diagnostic_center', 'doctor', 'pharmacist', 'patient', 'admin']}>
                 <DiagnosisCenter />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/blood-bank" element={
+              <ProtectedRoute>
+                <BloodBank />
               </ProtectedRoute>
             } />
 
