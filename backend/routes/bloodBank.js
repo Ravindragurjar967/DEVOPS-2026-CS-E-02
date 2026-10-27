@@ -6,6 +6,7 @@ const BloodRequest = require('../models/BloodRequest');
 const { protect, authorize } = require('../middleware/auth');
 const { isDbConnected } = require('../config/db');
 const memoryStore = require('../config/memoryStore');
+const { seedBloodBankData } = require('../config/seedBloodBank');
 
 const generateRequestId = () => {
   const rand = Math.floor(1000 + Math.random() * 9000);
@@ -116,26 +117,32 @@ router.get('/donors', async (req, res) => {
           { patientHealthId: new RegExp(search, 'i') }
         ];
       }
-      const donors = await BloodDonor.find(filter).sort({ updatedAt: -1 }).limit(50);
-      return res.json(donors);
-    } else {
-      let list = memoryStore.bloodDonors.filter(d => d.verificationStatus === 'verified' && d.isAvailable);
-      if (bloodGroup && bloodGroup !== 'all') {
-        list = list.filter(d => d.bloodGroup === bloodGroup);
+      let donors = await BloodDonor.find(filter).sort({ updatedAt: -1 }).limit(50);
+      if (donors.length === 0 && (!bloodGroup || bloodGroup === 'all') && !city && !search) {
+        await seedBloodBankData();
+        donors = await BloodDonor.find(filter).sort({ updatedAt: -1 }).limit(50);
       }
-      if (city) {
-        list = list.filter(d => d.city.toLowerCase().includes(city.toLowerCase()));
+      if (donors.length > 0) {
+        return res.json(donors);
       }
-      if (search) {
-        const s = search.toLowerCase();
-        list = list.filter(d => 
-          d.donorName.toLowerCase().includes(s) || 
-          d.city.toLowerCase().includes(s) || 
-          (d.patientHealthId && d.patientHealthId.toLowerCase().includes(s))
-        );
-      }
-      return res.json(list);
     }
+
+    let list = memoryStore.bloodDonors.filter(d => d.verificationStatus === 'verified' && d.isAvailable);
+    if (bloodGroup && bloodGroup !== 'all') {
+      list = list.filter(d => d.bloodGroup === bloodGroup);
+    }
+    if (city) {
+      list = list.filter(d => d.city.toLowerCase().includes(city.toLowerCase()));
+    }
+    if (search) {
+      const s = search.toLowerCase();
+      list = list.filter(d => 
+        (d.donorName && d.donorName.toLowerCase().includes(s)) || 
+        (d.city && d.city.toLowerCase().includes(s)) || 
+        (d.patientHealthId && d.patientHealthId.toLowerCase().includes(s))
+      );
+    }
+    return res.json(list);
   } catch (err) {
     res.status(500).json({ message: 'Error fetching blood donors' });
   }
@@ -263,18 +270,24 @@ router.get('/requests', async (req, res) => {
       if (urgency && urgency !== 'all') {
         filter.urgency = urgency;
       }
-      const requests = await BloodRequest.find(filter).sort({ urgency: -1, createdAt: -1 });
-      return res.json(requests);
-    } else {
-      let list = memoryStore.bloodRequests.filter(r => r.verificationStatus === 'verified' && r.status === 'open');
-      if (bloodGroup && bloodGroup !== 'all') {
-        list = list.filter(r => r.bloodGroup === bloodGroup);
+      let requests = await BloodRequest.find(filter).sort({ urgency: -1, createdAt: -1 });
+      if (requests.length === 0 && (!bloodGroup || bloodGroup === 'all') && (!urgency || urgency === 'all')) {
+        await seedBloodBankData();
+        requests = await BloodRequest.find(filter).sort({ urgency: -1, createdAt: -1 });
       }
-      if (urgency && urgency !== 'all') {
-        list = list.filter(r => r.urgency === urgency);
+      if (requests.length > 0) {
+        return res.json(requests);
       }
-      return res.json(list);
     }
+
+    let list = memoryStore.bloodRequests.filter(r => r.verificationStatus === 'verified' && r.status === 'open');
+    if (bloodGroup && bloodGroup !== 'all') {
+      list = list.filter(r => r.bloodGroup === bloodGroup);
+    }
+    if (urgency && urgency !== 'all') {
+      list = list.filter(r => r.urgency === urgency);
+    }
+    return res.json(list);
   } catch (err) {
     res.status(500).json({ message: 'Error fetching blood requests' });
   }
@@ -327,17 +340,24 @@ router.put('/requests/:id/status', protect, async (req, res) => {
 // @desc    Get all pending donors and pending blood requests for doctor review
 router.get('/clinical/pending', protect, authorize('doctor', 'admin'), async (req, res) => {
   try {
+    let pendingDonors = [];
+    let pendingRequests = [];
+
     if (isDbConnected()) {
-      const [pendingDonors, pendingRequests] = await Promise.all([
+      [pendingDonors, pendingRequests] = await Promise.all([
         BloodDonor.find({ verificationStatus: 'pending' }).sort({ createdAt: -1 }),
         BloodRequest.find({ verificationStatus: 'pending' }).sort({ createdAt: -1 })
       ]);
-      return res.json({ pendingDonors, pendingRequests });
-    } else {
-      const pendingDonors = memoryStore.bloodDonors.filter(d => d.verificationStatus === 'pending');
-      const pendingRequests = memoryStore.bloodRequests.filter(r => r.verificationStatus === 'pending');
-      return res.json({ pendingDonors, pendingRequests });
     }
+
+    if (!pendingDonors || pendingDonors.length === 0) {
+      pendingDonors = memoryStore.bloodDonors.filter(d => d.verificationStatus === 'pending');
+    }
+    if (!pendingRequests || pendingRequests.length === 0) {
+      pendingRequests = memoryStore.bloodRequests.filter(r => r.verificationStatus === 'pending');
+    }
+
+    return res.json({ pendingDonors, pendingRequests });
   } catch (err) {
     res.status(500).json({ message: 'Error fetching pending clinical records' });
   }
@@ -418,6 +438,17 @@ router.put('/requests/:id/verify', protect, authorize('doctor', 'admin'), async 
     }
   } catch (err) {
     res.status(500).json({ message: 'Error verifying blood request' });
+  }
+});
+
+// @route   POST /api/blood-bank/seed
+// @desc    Seed / reload sample demo donors and requests
+router.post('/seed', async (req, res) => {
+  try {
+    await seedBloodBankData();
+    res.json({ message: 'Sample blood bank donors and requests seeded successfully!' });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to seed sample donors' });
   }
 });
 

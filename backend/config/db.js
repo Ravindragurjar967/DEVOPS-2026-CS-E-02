@@ -39,6 +39,14 @@ const connectDB = async () => {
 
     isConnected = true;
     console.log(`✅ MongoDB Atlas Connected: ${conn.connection.host}`);
+
+    // Automatically seed Blood Bank dummy data if not present
+    try {
+      const { seedBloodBankData } = require('./seedBloodBank');
+      seedBloodBankData();
+    } catch (seedErr) {
+      console.warn('Blood Bank seeder note:', seedErr.message);
+    }
   } catch (error) {
     isConnected = false;
     console.warn(`⚠️ MongoDB Atlas Connection Note: ${error.message}`);

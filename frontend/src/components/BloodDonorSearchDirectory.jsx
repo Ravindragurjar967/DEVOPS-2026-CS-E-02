@@ -6,30 +6,31 @@ import {
 
 const BLOOD_GROUPS = ['ALL', 'O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
 
-const BloodDonorSearchDirectory = ({ donors, loading, onRequestBloodClick }) => {
+const BloodDonorSearchDirectory = ({ donors = [], loading, onRequestBloodClick }) => {
   const [selectedGroup, setSelectedGroup] = useState('ALL');
   const [cityFilter, setCityFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedId, setCopiedId] = useState(null);
 
   const handleCopyPhone = (phone, id) => {
-    navigator.clipboard.writeText(phone);
+    if (phone) navigator.clipboard.writeText(phone);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
 
   const getCleanPhone = (phone) => {
-    return phone.replace(/[^0-9]/g, '');
+    return phone ? String(phone).replace(/[^0-9]/g, '') : '';
   };
 
-  const filteredDonors = donors.filter(d => {
+  const filteredDonors = (donors || []).filter(d => {
+    if (!d) return false;
     if (selectedGroup !== 'ALL' && d.bloodGroup !== selectedGroup) return false;
-    if (cityFilter && !d.city.toLowerCase().includes(cityFilter.toLowerCase())) return false;
+    if (cityFilter && (!d.city || !d.city.toLowerCase().includes(cityFilter.toLowerCase()))) return false;
     if (searchTerm) {
       const s = searchTerm.toLowerCase();
-      const matchName = d.donorName.toLowerCase().includes(s);
-      const matchCity = d.city.toLowerCase().includes(s);
-      const matchHealthId = d.patientHealthId && d.patientHealthId.toLowerCase().includes(s);
+      const matchName = d.donorName ? d.donorName.toLowerCase().includes(s) : false;
+      const matchCity = d.city ? d.city.toLowerCase().includes(s) : false;
+      const matchHealthId = d.patientHealthId ? d.patientHealthId.toLowerCase().includes(s) : false;
       if (!matchName && !matchCity && !matchHealthId) return false;
     }
     return true;
