@@ -35,9 +35,24 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-app.get('/', (req, res) => {
-  res.send('E-Prescription Backend API is running smoothly.');
-});
+// Static frontend serving in production
+const path = require('path');
+const fs = require('fs');
+const frontendDistPath = path.join(__dirname, '../frontend/dist');
+
+if (fs.existsSync(frontendDistPath)) {
+  app.use(express.static(frontendDistPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    res.sendFile(path.join(frontendDistPath, 'index.html'));
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.send('E-Prescription Backend API is running smoothly.');
+  });
+}
 
 const PORT = process.env.PORT || 5000;
 
