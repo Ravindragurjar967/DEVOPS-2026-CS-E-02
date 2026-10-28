@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: eprescription
+
+resources:
+  - 00-namespace.yaml
+  - 01-configmap.yaml
+  - 02-secret.yaml
+  - 03-backend-deployment.yaml
+  - 04-backend-service.yaml
+  - 05-frontend-deployment.yaml
+  - 06-frontend-service.yaml
+  - 07-hpa.yaml
+  - 08-ingress.yaml
