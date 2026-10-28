@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: eprescription-platform
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        value: mongodb+srv://golugurjar0489_db_user:UHR1234@cluster0.38ferq4.mongodb.net/eprescription?retryWrites=true&w=majority
+      - key: JWT_SECRET
+        value: eprescription_super_secret_jwt_key_2026_health
