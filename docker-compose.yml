@@ -1,0 +1,36 @@
+services:
+  backend:
+    image: eprescription-backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: eprescription-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb+srv://golugurjar0489_db_user:UHR1234@cluster0.38ferq4.mongodb.net/eprescription?retryWrites=true&w=majority
+      - JWT_SECRET=eprescription_super_secret_jwt_key_2026_health
+    networks:
+      - eprescription-network
+
+  frontend:
+    image: eprescription-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: eprescription-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - eprescription-network
+
+networks:
+  eprescription-network:
+    driver: bridge
