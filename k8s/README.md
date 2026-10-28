@@ -70,11 +70,15 @@ kubectl get pods -n eprescription -w
 ```
 
 ### 3. Access Application
-- **Frontend App**: `http://localhost` (or `http://localhost:30080`)
+- **Frontend App**:
+  ```bash
+  kubectl port-forward svc/frontend-service -n eprescription 8085:80
+  # Open: http://localhost:8085
+  ```
 - **Backend Health Check**:
   ```bash
-  kubectl port-forward svc/backend 5000:5000 -n eprescription
-  # Open: http://localhost:5000/api/health
+  kubectl port-forward svc/backend 5005:5000 -n eprescription
+  # Open: http://localhost:5005/api/health
   ```
 
 ### 4. Teardown / Cleanup

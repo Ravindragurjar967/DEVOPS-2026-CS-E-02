@@ -11,5 +11,5 @@ Write-Host "`nDeployment Complete! Pods status:" -ForegroundColor Green
 kubectl get pods -n eprescription -o wide
 
 Write-Host "`nTo access the application locally in your browser, run:" -ForegroundColor Cyan
-Write-Host "kubectl port-forward svc/frontend-service -n eprescription 8080:80" -ForegroundColor White
-Write-Host "And open: http://localhost:8080`n" -ForegroundColor White
+Write-Host "kubectl port-forward svc/frontend-service -n eprescription 8085:80" -ForegroundColor White
+Write-Host "And open: http://localhost:8085`n" -ForegroundColor White
