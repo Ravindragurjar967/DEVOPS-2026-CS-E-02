@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const dns = require('dns');
+const { dbConnectionStatus } = require('./metrics');
 
 // Configure Node.js to use Google Public DNS (8.8.8.8) to resolve MongoDB Atlas SRV records on Windows
 try {
@@ -12,16 +13,19 @@ let isConnected = false;
 
 mongoose.connection.on('connected', () => {
   isConnected = true;
+  dbConnectionStatus.set(1);
   console.log('✅ MongoDB Atlas connection established successfully!');
 });
 
 mongoose.connection.on('disconnected', () => {
   isConnected = false;
+  dbConnectionStatus.set(0);
   console.warn('⚠️ MongoDB connection lost. Falling back to In-Memory mode.');
 });
 
 mongoose.connection.on('error', (err) => {
   isConnected = false;
+  dbConnectionStatus.set(0);
   console.warn('⚠️ MongoDB connection warning:', err.message);
 });
 

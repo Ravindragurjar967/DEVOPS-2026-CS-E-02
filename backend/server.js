@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const { connectDB } = require('./config/db');
+const { register, metricsMiddleware } = require('./config/metrics');
 
 dotenv.config();
 
@@ -12,8 +13,19 @@ connectDB();
 
 // Middleware
 app.use(cors());
+app.use(metricsMiddleware);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Prometheus Metrics Endpoint
+app.get('/metrics', async (req, res) => {
+  try {
+    res.setHeader('Content-Type', register.contentType);
+    res.send(await register.metrics());
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
 
 // API Routes
 app.use('/api/auth', require('./routes/auth'));

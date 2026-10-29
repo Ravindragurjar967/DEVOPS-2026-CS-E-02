@@ -13,3 +13,6 @@ resources:
   - 06-frontend-service.yaml
   - 07-hpa.yaml
   - 08-ingress.yaml
+  - 09-prometheus.yaml
+  - 10-grafana.yaml
+  - 11-grafana-dashboard-configmap.yaml
