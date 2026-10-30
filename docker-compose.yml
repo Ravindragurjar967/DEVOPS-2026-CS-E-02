@@ -33,4 +33,5 @@ services:
 
 networks:
   eprescription-network:
+    name: eprescription-network
     driver: bridge

@@ -42,5 +42,5 @@ services:
 
 networks:
   eprescription-network:
-    name: e-prescriptionproject_eprescription-network
+    name: eprescription-network
     external: true

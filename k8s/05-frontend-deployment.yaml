@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: eprescription-frontend:latest
+          image: ravindragurjar/eprescription-frontend:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
